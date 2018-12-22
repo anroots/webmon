@@ -1,0 +1,21 @@
+language: python
+python:
+  - "3.6"
+sudo: required
+services:
+  - docker
+
+script:
+  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH | tr / - ; fi`
+  - docker build -t anroots/webmon:$TAG .
+  - docker push anroots/webmon:$TAG
+  - docker rmi anroots/webmon:$TAG
+
+after_script:
+  - docker logout
+
+notifications:
+  email:
+    recipients:
+      - alerts@starmoon.eu
