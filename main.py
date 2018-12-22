@@ -15,7 +15,7 @@ logging.basicConfig(format='[%(levelname)s:%(name)s] %(asctime)s - %(message)s',
 
 parser = argparse.ArgumentParser(description='Monitor domains for interesting security states')
 
-parser.add_argument('--tld', action='append', nargs='+', default=[],
+parser.add_argument('--tld', action='append', nargs='?', default=[],
                     help='Monitor this TLD (.com)')
 parser.add_argument('--rport',type=int,default=6379,help='Redis port')
 parser.add_argument('--rhost',default='localhost',help='Redis hostname')
@@ -43,6 +43,7 @@ def new_cert(message, context):
 
         if len(args.tld) and domain_parts.suffix not in args.tld:
             continue
+
         if domain_parts.subdomain == '*':
             domain = '{}.{}'.format(domain_parts.domain,domain_parts.suffix)
 
