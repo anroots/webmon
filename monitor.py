@@ -6,15 +6,17 @@ logging.basicConfig(format='[%(levelname)s:%(name)s] %(asctime)s - %(message)s',
 
 
 def check_git(domain):
-    url = 'http://{}/.git/HEAD'.format(domain)
+    head_url = 'http://{}/.git/HEAD'.format(domain)
+    dir_url = 'http://{}/.git/'.format(domain)
     logging.info('Scanning {} for .git/HEAD'.format(domain))
 
     try:
-        response = requests.get(url, timeout=7, headers={'User-Agent':'Webmon Research Agent (https://github.com/anroots/webmon)'})
+        head_response = requests.get(head_url, timeout=7, headers={'User-Agent':'Webmon Research Agent (https://github.com/anroots/webmon)'})
+        dir_response = requests.get(dir_url, timeout=7, headers={'User-Agent':'Webmon Research Agent (https://github.com/anroots/webmon)'})
     except RequestException:
         return
 
-    if response.status_code == 200 and 'refs' in response.text:
+    if head_response.status_code == 200 and 'refs' in head_response.text and dir_response == 200 and 'config' in dir_response.text:
         message = 'Found Git folder at {0}'.format(domain)
         logging.info(message)
         alert(message)
