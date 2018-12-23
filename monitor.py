@@ -10,7 +10,7 @@ def check_git(domain):
     logging.info('Scanning {} for .git/HEAD'.format(domain))
 
     try:
-        response = requests.head(url, timeout=7, headers={'User-Agent':'Webmon Research Agent (https://github.com/anroots/webmon)'})
+        response = requests.get(url, timeout=7, headers={'User-Agent':'Webmon Research Agent (https://github.com/anroots/webmon)'})
     except RequestException:
         return
 
