@@ -1,0 +1,6 @@
+*.crt
+!ca.crt
+*.key
+dhparam.pem
+*.csr
+ca.srl

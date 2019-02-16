@@ -1,43 +1,110 @@
-version: "3"
+version: "3.7"
 
 services:
-  redis:
-    image: redis
+  webserver:
+    build:
+      context: .
+      target: dev
     ports:
-      - 6379:6379
+    - "8080"
     networks:
-      - redis
+      backend:
+      db:
+      mail:
+    environment:
+    - APP_ENV=local
+    - APP_URL=webmon.atc
+    volumes:
+    - ./webmon:/var/www/
+    depends_on:
+    - app-db
+    - redis
 
   worker:
-    image: anroots/webmon
     build:
       context: .
-    command:
-      - 'python'
-      - 'worker.py'
-      - "--rhost=redis"
-    depends_on:
-      - redis
+    networks:
+    - backend
+    - db
+    - mail
     environment:
-      - FLEEP_HOOK=
-    networks:
-      - redis
-
-  certstream:
-    image: anroots/webmon
-    build:
-      context: .
-    command:
-      - "python"
-      - "main.py"
-      - "--rhost=redis"
-      - "--tld=ee"
-      - "--tld=com"
-    networks:
-      - redis
-
+    - APP_ENV=local
+    - APP_URL=webmon.atc
+    volumes:
+    - ./webmon:/var/www/
     depends_on:
-      - redis
+    - app-db
+    - redis
+    command: "php /var/www/artisan queue:work --tries=3"
+
+  lb:
+    build:
+      context: docker/lb
+    image: sqroot/nginx
+    ports:
+    - "80:80"
+    - "443:443"
+    networks:
+      backend:
+        aliases:
+        - webmon.atc
+    volumes:
+    - ./docker/lb/certs:/etc/ssl/certs/lb:ro
+    depends_on:
+    - webserver
+
+  certstream-worker:
+    build:
+      context: certstream-worker
+    networks:
+      - db
+    depends_on:
+      - app-db
+    command:
+      - python
+      - worker.py
+      - '--mysql-host=app-db'
+      - '--mysql-password=H7dgsQf3bawjNpDdZi6NLGC'
+      - '--tld=fi'
+      - '--tld=ee'
+
+  app-db:
+    image: mariadb:10
+    environment:
+    - MYSQL_ROOT_PASSWORD=MPsOcrd4YRPCgp0KCqAy
+    - MYSQL_USER=webmon
+    - MYSQL_PASSWORD=H7dgsQf3bawjNpDdZi6NLGC
+    - MYSQL_DATABASE=webmon
+    networks:
+    - db
+    ports:
+    - 3310:3306
+    volumes:
+    - app-db:/var/lib/mysql
+
+  redis:
+    image: redis:4-alpine
+    networks:
+    - db
+    volumes:
+    - redis:/data
+    ports:
+    - "6379:6379"
+    command: --appendonly yes --requirepass kthUun9
+
+
+  mailserver:
+    image: mailhog/mailhog
+    ports:
+    - "8025:8025"
+    networks:
+    - mail
+
+volumes:
+  app-db:
+  redis:
 
 networks:
-  redis:
+  backend:
+  db:
+  mail:

@@ -1,4 +1,3 @@
 certstream
 tldextract
-rq
-requests
+mysql-connector

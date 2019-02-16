@@ -1,21 +1,26 @@
-language: python
-python:
-  - "3.6"
+language: php
 sudo: required
 services:
   - docker
 
-script:
-  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH | tr / - ; fi`
-  - docker build -t anroots/webmon:$TAG .
-  - docker push anroots/webmon:$TAG
-  - docker rmi anroots/webmon:$TAG
+cache:
+  directories:
+    - "$HOME/.npm"
+    - "$HOME/.composer"
+php:
+  - 7.3
 
-after_script:
-  - docker logout
+node_js: 8.9
 
-notifications:
-  email:
-    recipients:
-      - alerts@starmoon.eu
+jobs:
+  include:
+  - stage: "🤖 Run quality checks"
+    name: "🕵️ Run static analysis tools on code"
+    script: .travis/static-analysis.sh
+  - name: "✔️ Run unit tests"
+    script: .travis/unittest.sh
+  - stage: "🐳 Create build artifacts"
+    script: .travis/build-webserver.sh
+    name: "🐳 Build Docker webserver image"
+  - script: .travis/build-certstream.sh
+    name: "🐳 Build Docker certstream-worker image"
