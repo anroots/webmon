@@ -30,7 +30,8 @@ class AppServiceProvider extends ServiceProvider
                 'timeout' => 4,
                 'headers' => [
                     'User-Agent' => \Campo\UserAgent::random(),
-                ]
+                ],
+                'allow_redirects' => false
             ]);
         });
     }

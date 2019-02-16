@@ -28,7 +28,13 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
      */
     private $domain;
 
-    protected $checks = [];
+    protected $checks = [
+        'httpGitHead' => false,
+        'httpsGitHead' => false,
+        'httpsDirIndex' => false,
+        'httpDirIndex' => false,
+        'hasLastCommitMsg' => false
+    ];
 
     /**
      * Create a new job instance.
@@ -120,7 +126,7 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
         }
 
         $body = (string)$response->getBody();
-        $this->checks['hasLastCommitMsg'] = (bool)strpos($body,'COMMIT_EDITMSG');
+        $this->checks['hasLastCommitMsg'] = (bool)strpos($body, 'COMMIT_EDITMSG');
 
         foreach (['config', 'HEAD', 'objects', 'refs', 'info', 'logs'] as $file) {
             if (!strpos($body, $file)) {
@@ -136,11 +142,15 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
      */
     protected function runChecks(Domain $domain): void
     {
-        $this->checks = array_replace(['httpGitHead' => $this->hasGitHead($domain->domain, false),
-            'httpsGitHead' => $this->hasGitHead($domain->domain, true),
-            'httpDirIndex' => $this->hasPublicDirectoryIndex($domain->domain, false),
-            'httpsDirIndex' => $this->hasPublicDirectoryIndex($domain->domain, true)
-        ],$this->checks);
+        $this->checks['httpGitHead'] = $this->hasGitHead($domain->domain, false);
+        $this->checks['httpsGitHead'] = $this->hasGitHead($domain->domain, true);
+
+        if ($this->checks['httpsGitHead']) {
+            $this->checks['httpsDirIndex'] = $this->hasPublicDirectoryIndex($domain->domain, true);
+        }
+        if ($this->checks['httpGitHead']) {
+            $this->checks['httpDirIndex'] = $this->hasPublicDirectoryIndex($domain->domain, false);
+        }
 
         if ($this->checks['hasLastCommitMsg']) {
             $this->checks['lastCommitMessage'] = $this->getLastCommitMessage($domain->domain);
