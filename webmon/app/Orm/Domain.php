@@ -18,4 +18,13 @@ class Domain extends Model
     {
         $this->attributes['domain'] = strtolower(trim($value));
     }
+
+    public function notifications()
+    {
+        return $this->hasMany('App\Orm\Notification');
+    }
+    public function scans()
+    {
+        return $this->hasMany('App\Orm\Scan');
+    }
 }

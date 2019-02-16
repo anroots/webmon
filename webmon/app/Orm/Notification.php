@@ -11,4 +11,9 @@ class Notification extends Model
 {
 
     protected $fillable = ['user_id', 'scan_type', 'domain_id'];
+
+    protected function domain()
+    {
+        return $this->belongsTo('App\Orm\Domain');
+    }
 }
