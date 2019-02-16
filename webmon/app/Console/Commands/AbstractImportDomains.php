@@ -4,38 +4,14 @@ namespace App\Console\Commands;
 
 use App\Orm\Domain;
 use Carbon\Carbon;
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
 use Illuminate\Console\Command;
 
-class ImportDomains extends Command
+abstract class AbstractImportDomains extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'domain:import {--tld=*} {file}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Import domains from a Photon JSON file';
 
-    /**
-     * Create a new command instance.
-     *
-     */
-    public function __construct()
-    {
-        parent::__construct();
+    abstract protected function readLines(string $file): \Iterator;
 
-    }
 
     /**
      * Execute the console command.
@@ -48,6 +24,7 @@ class ImportDomains extends Command
         $tlds = $this->input->getOption('tld');
 
         foreach ($this->readLines($file) as $url) {
+
             $domain = $this->extractDomain($url);
 
             if ($domain === false) {
@@ -78,33 +55,14 @@ class ImportDomains extends Command
         return 0;
     }
 
-    /**
-     * @param string $file
-     * @return array
-     * @throws \Exception
-     */
-    private function readLines(string $file): array
-    {
-        if (!file_exists($file)) {
-            throw new \Exception('File not found');
-        }
 
-        $content = json_decode(file_get_contents($file), JSON_OBJECT_AS_ARRAY);
-
-        if (!$content || !array_key_exists('external', $content)) {
-            throw new \Exception('Invalid JSON input file');
-        }
-
-        return $content['external'];
-    }
-
-    private function extractDomain(string $url): ?string
+    protected function extractDomain(string $url): ?string
     {
         return parse_url($url, PHP_URL_HOST);
     }
 
 
-    private function getTld(string $domain): string
+    protected function getTld(string $domain): string
     {
         $bits = explode(".", $domain);
         return end($bits);
