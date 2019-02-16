@@ -60,10 +60,6 @@ class ImportDomains extends Command
                 continue;
             }
 
-            if (!$this->checkConnection($domain)) {
-                $this->output->writeln(sprintf('Can not connect to domain %s, skipping', $domain));
-                continue;
-            }
 
             $d = Domain::firstOrCreate(['domain' => $domain]);
 
@@ -77,6 +73,8 @@ class ImportDomains extends Command
 
             $this->output->writeln(sprintf('Inserted domain %s', $domain));
         }
+
+        $this->output->writeln('Done importing domains');
         return 0;
     }
 
@@ -105,22 +103,6 @@ class ImportDomains extends Command
         return parse_url($url, PHP_URL_HOST);
     }
 
-    private function checkConnection(string $domain): bool
-    {
-        try {
-            /** @var Client $client */
-            $client = app()->get(ClientInterface::class);
-            $client->get('http://' . $domain);
-            return true;
-        } catch (ClientException $e) {
-
-        } catch (ConnectException $e) {
-
-        } catch (RequestException $e) {
-
-        }
-        return false;
-    }
 
     private function getTld(string $domain): string
     {
