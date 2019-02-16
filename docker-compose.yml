@@ -67,6 +67,7 @@ services:
       - '--mysql-password=H7dgsQf3bawjNpDdZi6NLGC'
       - '--tld=fi'
       - '--tld=ee'
+      - '--tld=eu'
 
   app-db:
     image: mariadb:10

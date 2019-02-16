@@ -2,7 +2,7 @@
 
 set -e
 
-cd src
+cd webmon
 
 touch .env
 

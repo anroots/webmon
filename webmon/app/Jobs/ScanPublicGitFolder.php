@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -50,6 +51,7 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
         ]);
 
         $result = $this->scan($this->domain);
+
         $scan->last_scan = Carbon::now();
         $scan->results = json_encode($result);
         $scan->save();
@@ -80,7 +82,7 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
 
         try {
             $response = $client->get($url);
-        } catch (ClientException $e) {
+        } catch (RequestException $e) {
             return false;
         }
 
@@ -103,7 +105,7 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
 
         try {
             $response = $client->get($url);
-        } catch (ClientException $e) {
+        } catch (RequestException $e) {
             return false;
         }
 
@@ -136,6 +138,9 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
     public function scan(Domain $domain): array
     {
 
+        if (!$this->canConnect($domain->domain)) {
+            return ['error' => 'Unable to connect'];
+        }
         $this->runChecks($domain);
 
         if (
@@ -165,7 +170,7 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
 
         try {
             $response = $client->get($url);
-        } catch (ClientException $e) {
+        } catch (RequestException $e) {
             return false;
         }
 
@@ -174,5 +179,18 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
         }
 
         return (string)$response->getBody();
+    }
+
+    private function canConnect(string $domain):bool
+    {
+        try {
+            /** @var Client $client */
+            $client = app()->get(ClientInterface::class);
+            $response = $client->head('http://' . $domain);
+            return (bool)$response->getStatusCode();
+        } catch (ClientException $e) {
+            Log::warning(sprintf('Skipping scan of %s: unable to connect',$domain));
+            return false;
+        }
     }
 }

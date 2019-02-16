@@ -2,6 +2,6 @@
 
 set -e
 
-cd src
+cd webmon
 composer install --no-interaction --dev
 php vendor/bin/parallel-lint --exclude vendor .

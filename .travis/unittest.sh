@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cd src
+cd webmon
 touch .env
 
 echo "Installing Composer dependencies..."
