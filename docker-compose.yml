@@ -12,9 +12,6 @@ services:
       backend:
       db:
       mail:
-    environment:
-    - APP_ENV=local
-    - APP_URL=webmon.atc
     volumes:
     - ./webmon:/var/www/
     depends_on:
@@ -29,9 +26,6 @@ services:
     - backend
     - db
     - mail
-    environment:
-    - APP_ENV=local
-    - APP_URL=webmon.atc
     volumes:
     - ./webmon:/var/www/
     depends_on:
