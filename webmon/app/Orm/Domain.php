@@ -13,4 +13,9 @@ class Domain extends Model
     use SoftDeletes;
 
     protected $fillable = ['domain'];
+
+    public function setDomainAttribute($value)
+    {
+        $this->attributes['domain'] = strtolower(trim($value));
+    }
 }

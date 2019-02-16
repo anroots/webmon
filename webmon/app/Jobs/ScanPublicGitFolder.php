@@ -17,6 +17,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
+use Psr\Http\Message\ResponseInterface;
 
 class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
 {
@@ -37,6 +38,20 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
     public function __construct(Domain $domain)
     {
         $this->domain = $domain;
+    }
+
+    private function getUrl(string $url): ?ResponseInterface
+    {
+        /** @var Client $client */
+        $client = app()->get(ClientInterface::class);
+        Log::info(sprintf('Scanning %s', $url));
+
+        try {
+            $response = $client->get($url);
+        } catch (\Exception $e) {
+            return null;
+        }
+        return $response;
     }
 
     /**
@@ -73,20 +88,14 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
      */
     protected function hasGitHead(string $domain, $secure = true): bool
     {
-        /** @var Client $client */
-        $client = app()->get(ClientInterface::class);
 
         $protocol = $secure ? 'https' : 'http';
         $url = sprintf('%s://%s/.git/HEAD', $protocol, $domain);
 
-        Log::info(sprintf('Scanning %s', $url));
-
-        try {
-            $response = $client->get($url);
-        } catch (RequestException $e) {
+        $response = $this->getUrl($url);
+        if ($response === null) {
             return false;
         }
-
         return $response->getStatusCode() === 200 && strpos($response->getBody(), 'refs');
     }
 
@@ -97,24 +106,24 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
      */
     protected function hasPublicDirectoryIndex(string $domain, $secure = true): bool
     {
-        /** @var Client $client */
-        $client = app()->get(ClientInterface::class);
 
         $protocol = $secure ? 'https' : 'http';
         $url = sprintf('%s://%s/.git/', $protocol, $domain);
-        Log::info(sprintf('Scanning %s', $url));
 
-        try {
-            $response = $client->get($url);
-        } catch (RequestException $e) {
+        $response = $this->getUrl($url);
+        if ($response === null) {
             return false;
         }
 
         if ($response->getStatusCode() !== 200) {
             return false;
         }
+
+        $body = (string)$response->getBody();
+        $this->checks['hasLastCommitMsg'] = (bool)strpos($body,'COMMIT_EDITMSG');
+
         foreach (['config', 'HEAD', 'objects', 'refs', 'info', 'logs'] as $file) {
-            if (!strpos($response->getBody(), $file)) {
+            if (!strpos($body, $file)) {
                 return false;
             }
         }
@@ -127,13 +136,15 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
      */
     protected function runChecks(Domain $domain): void
     {
-        $this->checks = ['httpGitHead' => $this->hasGitHead($domain->domain, false),
+        $this->checks = array_replace(['httpGitHead' => $this->hasGitHead($domain->domain, false),
             'httpsGitHead' => $this->hasGitHead($domain->domain, true),
             'httpDirIndex' => $this->hasPublicDirectoryIndex($domain->domain, false),
             'httpsDirIndex' => $this->hasPublicDirectoryIndex($domain->domain, true)
-        ];
+        ],$this->checks);
 
-        $this->checks['lastCommitMessage'] = $this->getLastCommitMessage($domain->domain);
+        if ($this->checks['hasLastCommitMsg']) {
+            $this->checks['lastCommitMessage'] = $this->getLastCommitMessage($domain->domain);
+        }
     }
 
     public function scan(Domain $domain): array
@@ -161,21 +172,14 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
         if (!$this->checks['httpGitHead'] && !$this->checks['httpsGitHead']) {
             return null;
         }
-        /** @var Client $client */
-        $client = app()->get(ClientInterface::class);
 
         $protocol = $this->checks['httpsGitHead'] ? 'https' : 'http';
         $url = sprintf('%s://%s/.git/COMMIT_EDITMSG', $protocol, $domain);
 
-        Log::info(sprintf('Scanning %s', $url));
 
-        try {
-            $response = $client->get($url);
-        } catch (RequestException $e) {
-            return false;
-        }
+        $response = $this->getUrl($url);
 
-        if ($response->getStatusCode() !== 200) {
+        if ($response === null || $response->getStatusCode() !== 200) {
             return null;
         }
 
