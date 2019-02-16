@@ -71,7 +71,6 @@ class ScanSchedulerService
         $nextScan = $domain->updated_at->copy()->addMinutes($scanner->getScanFrequency());
         $diffInMinutes = Carbon::now()->diffInMinutes($nextScan, false);
         if ($diffInMinutes > 0) {
-            Log::info(sprintf('Skipping %s with %s, will scan in %d minutes', $domain->domain, get_class($scanner), $diffInMinutes));
             return false;
         }
 
