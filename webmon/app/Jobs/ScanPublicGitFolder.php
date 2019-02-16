@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
@@ -181,7 +182,7 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
         return (string)$response->getBody();
     }
 
-    private function canConnect(string $domain):bool
+    private function canConnect(string $domain): bool
     {
         try {
             /** @var Client $client */
@@ -189,8 +190,11 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
             $response = $client->head('http://' . $domain);
             return (bool)$response->getStatusCode();
         } catch (ClientException $e) {
-            Log::warning(sprintf('Skipping scan of %s: unable to connect',$domain));
-            return false;
+
+        } catch (ConnectException $e) {
+
         }
+        Log::warning(sprintf('Skipping scan of %s: unable to connect', $domain));
+        return false;
     }
 }

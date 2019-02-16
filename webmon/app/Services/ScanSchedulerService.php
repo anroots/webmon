@@ -26,7 +26,7 @@ class ScanSchedulerService
 
         $candidates = $this->getCandidateDomains();
 
-        if ($candidates->count() ===0) {
+        if ($candidates->count() === 0) {
             Log::info('No scans to schedule');
             return 0;
         }
@@ -53,6 +53,7 @@ class ScanSchedulerService
         $limitTime = Carbon::now()->subMinute(config('webmon.min_scan_interval'));
 
         return Domain::whereDate('updated_at', '<=', $limitTime)
+            ->whereTime('updated_at', '<=', $limitTime)
             ->limit(10000)
             ->get();
     }
@@ -68,13 +69,14 @@ class ScanSchedulerService
     public function scheduleScan(Domain $domain, WebMonScannerContract $scanner): bool
     {
         $nextScan = $domain->updated_at->copy()->addMinutes($scanner->getScanFrequency());
-        if (Carbon::now()->lessThan($nextScan)) {
+        $diffInMinutes = Carbon::now()->diffInMinutes($nextScan, false);
+        if ($diffInMinutes > 0) {
+            Log::info(sprintf('Skipping %s with %s, will scan in %d minutes', $domain->domain, get_class($scanner), $diffInMinutes));
             return false;
         }
 
         $domain->updated_at = Carbon::now();
         $domain->save();
-
         Log::info(sprintf('Scheduling %s scan for domain %s', get_class($scanner), $domain->domain));
         $scanner::dispatch($domain);
         return true;

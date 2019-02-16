@@ -5,7 +5,7 @@ return [
     'scanners' => [
         'git' => [
             'class' => \App\Jobs\ScanPublicGitFolder::class,
-            'min_scan_interval'=> 60
+            'min_scan_interval'=> 10080 // 1 week
         ]
     ],
 
