@@ -5,6 +5,7 @@ services:
     build:
       context: .
       target: dev
+    image: anroots/webmon
     ports:
     - "8080"
     networks:
@@ -23,6 +24,7 @@ services:
   worker:
     build:
       context: .
+    image: anroots/webmon
     networks:
     - backend
     - db
@@ -56,6 +58,7 @@ services:
   certstream-worker:
     build:
       context: certstream-worker
+    image: anroots/webmon-certstream-worker
     networks:
       - db
     depends_on:
