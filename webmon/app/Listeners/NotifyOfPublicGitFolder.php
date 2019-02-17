@@ -25,6 +25,7 @@ class NotifyOfPublicGitFolder implements ShouldQueue
         //
     }
 
+
     /**
      * Handle the event.
      *
@@ -35,7 +36,6 @@ class NotifyOfPublicGitFolder implements ShouldQueue
     {
         Log::info(sprintf('Found public .git folder on domain %s', $event->domain->domain), $event->scanDetails);
 
-        $notification = new PublicGitFolderNotification($event);
 
         foreach (User::getAdmins() as $user) {
 
@@ -47,11 +47,12 @@ class NotifyOfPublicGitFolder implements ShouldQueue
 
             $notificationLimit = Carbon::now()->subMinutes(config('webmon.min_renotify_interval'));
 
-            if ($lastNotification->updated_at->greaterThan($notificationLimit)) {
+            if (!$lastNotification->wasRecentlyCreated && $lastNotification->updated_at->greaterThan($notificationLimit)) {
                 Log::info(sprintf('Will not renotify user % about %s on %s', $user->id, ScanPublicGitFolder::class, $event->domain->domain));
                 continue;
             }
 
+            $notification = new PublicGitFolderNotification($event);
             Notification::send($user, $notification);
             $lastNotification->updated_at = Carbon::now();
             $lastNotification->save();

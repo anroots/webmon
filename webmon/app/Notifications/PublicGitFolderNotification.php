@@ -48,7 +48,8 @@ class PublicGitFolderNotification extends Notification implements ShouldQueue
     {
 
         return (new MailMessage)
-            ->line(sprintf('Found a public .git folder at %s.', $this->event->domain->domain))
+            ->subject(sprintf('Public .git folder at %s',$this->event->domain->domain))
+            ->line(sprintf('Webmon found a public .git folder at %s.', $this->event->domain->domain))
             ->action('View in browser', $this->composeUrl());
     }
 
