@@ -6,7 +6,7 @@ use App\Orm\Domain;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
-abstract class AbstractImportDomains extends Command
+abstract class ImportDomains extends Command
 {
 
 
@@ -22,17 +22,18 @@ abstract class AbstractImportDomains extends Command
     {
         $file = $this->input->getArgument('file');
         $tlds = $this->input->getOption('tld');
+        $tags = $this->input->getOption('tags');
 
         foreach ($this->readLines($file) as $url) {
 
             $domain = $this->extractDomain($url);
 
-            if ($domain === false) {
+            if ($domain === false | $domain === null) {
                 $this->output->writeln(sprintf('Can not import %s (invalid URL), skipping.', $url));
                 continue;
             }
 
-            if (!in_array($this->getTld($domain), $tlds)) {
+            if (!in_array('*', $tlds) && !in_array($this->getTld($domain), $tlds)) {
                 $this->output->writeln(sprintf('Skipping domain %s because TLD is not in %s', $domain, implode(',', $tlds)));
                 continue;
             }
@@ -47,6 +48,7 @@ abstract class AbstractImportDomains extends Command
 
             $d->updated_at = Carbon::now()->subYears(10); // Force rescan immediately
             $d->save();
+            $d->attachTags($tags);
 
             $this->output->writeln(sprintf('Inserted domain %s', $domain));
         }
@@ -58,6 +60,10 @@ abstract class AbstractImportDomains extends Command
 
     protected function extractDomain(string $url): ?string
     {
+        if (mb_substr($url, 0, 4) !== 'http') {
+            $url = 'http://' . $url;
+        }
+
         return parse_url($url, PHP_URL_HOST);
     }
 

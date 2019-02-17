@@ -6,14 +6,14 @@ use App\Orm\Domain;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
-class ImportCommonCrawlerDomains extends AbstractImportDomains
+class ImportCommonCrawlerDomains extends ImportDomains
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'domain:import-common-crawler {--tld=*} {file}';
+    protected $signature = 'domain:import-common-crawler {--tld=*} {--tags=*} {file}';
 
     /**
      * The console command description.

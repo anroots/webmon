@@ -2,23 +2,21 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-
-class ImportPhotonDomains extends ImportDomains
+class ImportCsvDomains extends ImportDomains
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'domain:import-photon {--tld=*} {--tags=*} {file}';
+    protected $signature = 'domain:import-csv {--tld=*} {--tags=*} {file}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Import domains from a Photon JSON file';
+    protected $description = 'Import domains from a CSV file';
 
 
     /**
@@ -32,13 +30,14 @@ class ImportPhotonDomains extends ImportDomains
             throw new \Exception('File not found');
         }
 
-        $content = json_decode(file_get_contents($file), JSON_OBJECT_AS_ARRAY);
+        $file = fopen($file, 'r');
 
-        if (!$content || !array_key_exists('external', $content)) {
-            throw new \Exception('Invalid JSON input file');
+
+        while (($line = fgets($file)) !== false) {
+            yield trim($line);
         }
 
-        return $content['external'];
+        fclose($file);
     }
 
 }
