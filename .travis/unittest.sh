@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 cd webmon
-touch .env
+cp .env.testing .env
 
 echo "Installing Composer dependencies..."
 composer install --no-interaction
