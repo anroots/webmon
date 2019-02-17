@@ -6,6 +6,10 @@ return [
         'git' => [
             'class' => \App\Jobs\ScanPublicGitFolder::class,
             'min_scan_interval'=> 10080 // 1 week
+        ],
+        'unresolvable' => [
+            'class' => \App\Jobs\CheckDomainResolves::class,
+            'min_scan_interval' => 5000 // ~3 days
         ]
     ],
 

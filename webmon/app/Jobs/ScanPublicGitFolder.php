@@ -208,7 +208,7 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
         } catch (ConnectException $e) {
 
         }
-        Log::warning(sprintf('Skipping scan of %s: unable to connect', $domain));
+        Log::warning(sprintf('Skipping Git scan of %s: unable to connect', $domain));
         return false;
     }
 }

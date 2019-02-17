@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Events\PublicGitFolderFound;
+use App\Events\UnresolvableDomain;
+use App\Listeners\DeleteUnresolvableDomain;
 use App\Listeners\LogSentNotification;
 use App\Listeners\NotifyOfPublicGitFolder;
 use Illuminate\Notifications\Events\NotificationSent;
@@ -27,6 +29,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         NotificationSent::class => [
             LogSentNotification::class
+        ],
+        UnresolvableDomain::class => [
+            DeleteUnresolvableDomain::class
         ]
     ];
 

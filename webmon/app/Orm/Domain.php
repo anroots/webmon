@@ -14,6 +14,7 @@ class Domain extends Model
     use SoftDeletes,HasTags;
 
     protected $fillable = ['domain'];
+    protected $dates = ['updated_at','deleted_at','created_at'];
 
     public function setDomainAttribute($value)
     {

@@ -24,21 +24,12 @@ class ScanSchedulerTest extends TestCase
         $this->scanSchedulerService = new ScanSchedulerService;
     }
 
-    public function testScheduleScanUpdatesDomainTimestamp()
-    {
-        $domain = factory(Domain::class)->create(['updated_at' => Carbon::yesterday()->subHours(1)]);
-
-        $this->scanSchedulerService->scheduleScan($domain, new ScanMock);
-
-        $this->assertTrue(Carbon::now()->subSecond()->lessThan($domain->updated_at));
-    }
-
     public function testScheduleScanDoesNotScheduleRecentlyUpdatedDomain()
     {
         $originalTime = Carbon::now()->subMinute(1);
         $domain = factory(Domain::class)->create(['updated_at' => $originalTime]);
-        $scheduled = $this->scanSchedulerService->scheduleScan($domain, new ScanMock);
-        $this->assertFalse($scheduled);
+        $scheduled = $this->scanSchedulerService->run();
+        $this->assertEquals(0,$scheduled);
         $this->assertEquals(0,$domain->updated_at->diffInSeconds($originalTime));
 
     }
