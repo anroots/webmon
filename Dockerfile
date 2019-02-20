@@ -5,7 +5,7 @@ WORKDIR /var/www/
 RUN rm -rf /var/www/html /etc/apache2/conf-enabled/security.conf && \
     apt-get update && \
     apt-get install -y libzip-dev && \
-    docker-php-ext-install pdo_mysql zip && \
+    docker-php-ext-install pdo_mysql zip pcntl && \
     a2enmod rewrite remoteip headers && \
     rm -rf /var/lib/apt/lists/*
 

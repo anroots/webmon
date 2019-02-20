@@ -46,6 +46,11 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
         $this->domain = $domain;
     }
 
+    public function tags()
+    {
+        return ['scan:git', 'domain:'.$this->domain->id];
+    }
+
     private function getUrl(string $url): ?ResponseInterface
     {
         /** @var Client $client */
@@ -203,12 +208,9 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
             $client = app()->get(ClientInterface::class);
             $response = $client->head('http://' . $domain);
             return (bool)$response->getStatusCode();
-        } catch (ClientException $e) {
-
-        } catch (ConnectException $e) {
-
+        } catch (\Exception $e) {
+            Log::warning(sprintf('Skipping Git scan of %s: unable to connect', $domain));
+            return false;
         }
-        Log::warning(sprintf('Skipping Git scan of %s: unable to connect', $domain));
-        return false;
     }
 }

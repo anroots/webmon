@@ -31,7 +31,7 @@ services:
     depends_on:
     - app-db
     - redis
-    command: "php /var/www/artisan queue:work --tries=3"
+    command: "php /var/www/artisan horizon"
 
   lb:
     build:

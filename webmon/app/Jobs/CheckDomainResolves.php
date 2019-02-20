@@ -61,6 +61,10 @@ class CheckDomainResolves implements ShouldQueue, WebMonScannerContract
     }
 
 
+    public function tags()
+    {
+        return ['scan:unresolvable', 'domain:'.$this->domain->id];
+    }
     /**
      * Return IP address of input domain or null if the DNS name does not resolve
      *
