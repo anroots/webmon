@@ -17,7 +17,7 @@ class DomainProcessor(threading.Thread):
 
         ts = time.time()
         now = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-        insert_tuple = (domain, now, now)
+        insert_tuple = (domain, now, '2019-01-01 00:00:00')
 
         cursor = self.db.cursor()
         cursor.execute(sql_insert_query, insert_tuple)
