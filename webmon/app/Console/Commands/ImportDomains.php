@@ -12,6 +12,22 @@ abstract class ImportDomains extends Command
 
     abstract protected function readLines(string $file): \Iterator;
 
+    private function createDomain(string $domain, array $tags = []): Domain
+    {
+
+        $d = Domain::firstOrCreate(['domain' => $domain]);
+
+        if ($d->wasRecentlyCreated === false) {
+            $this->output->writeln(sprintf('Skipping existing domain %s', $domain));
+            return;
+        }
+
+        $d->updated_at = Carbon::now()->subYears(10); // Force rescan immediately
+        $d->save();
+        $d->attachTags($tags);
+        $this->output->writeln(sprintf('Inserted domain %s', $domain));
+        return $d;
+    }
 
     /**
      * Execute the console command.
@@ -38,19 +54,13 @@ abstract class ImportDomains extends Command
                 continue;
             }
 
-
-            $d = Domain::firstOrCreate(['domain' => $domain]);
-
-            if ($d->wasRecentlyCreated === false) {
-                $this->output->writeln(sprintf('Skipping existing domain %s', $domain));
+            try {
+                $this->createDomain($domain, $tags);
+            } catch (\Exception $e) {
+                $this->error($e);
                 continue;
             }
 
-            $d->updated_at = Carbon::now()->subYears(10); // Force rescan immediately
-            $d->save();
-            $d->attachTags($tags);
-
-            $this->output->writeln(sprintf('Inserted domain %s', $domain));
         }
 
         $this->output->writeln('Done importing domains');
