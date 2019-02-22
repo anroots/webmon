@@ -12,14 +12,14 @@ abstract class ImportDomains extends Command
 
     abstract protected function readLines(string $file): \Iterator;
 
-    private function createDomain(string $domain, array $tags = []): Domain
+    private function createDomain(string $domain, array $tags = []): ?Domain
     {
 
         $d = Domain::firstOrCreate(['domain' => $domain]);
 
         if ($d->wasRecentlyCreated === false) {
             $this->output->writeln(sprintf('Skipping existing domain %s', $domain));
-            return;
+            return null;
         }
 
         $d->updated_at = Carbon::now()->subYears(10); // Force rescan immediately
