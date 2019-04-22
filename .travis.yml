@@ -22,5 +22,3 @@ jobs:
   - stage: "🐳 Create build artifacts"
     script: .travis/build-webserver.sh
     name: "🐳 Build Docker webserver image"
-  - script: .travis/build-certstream.sh
-    name: "🐳 Build Docker certstream-worker image"
