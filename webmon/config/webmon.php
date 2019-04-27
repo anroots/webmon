@@ -128,7 +128,6 @@ return [
                 '/sql.txt',
                 '/tmp/',
                 '/web-console/',
-                '/WEB-INF./web.xml',
                 '/WEB-INF/config.xml',
                 '/WEB-INF/web.xml',
                 '/web.config',
