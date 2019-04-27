@@ -11,6 +11,7 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\TransferException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -29,6 +30,10 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
     private $domain;
 
     protected $filesList = [];
+    /**
+     * @var Client
+     */
+    private $client;
 
     /**
      * Create a new job instance.
@@ -43,19 +48,6 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
     public function tags()
     {
         return ['scan:wordlist', 'domain:' . $this->domain->id];
-    }
-
-    private function getUrl(string $url): ?ResponseInterface
-    {
-        /** @var Client $client */
-        $client = app()->get(ClientInterface::class);
-
-        try {
-            $response = $client->get($url);
-        } catch (\Exception $e) {
-            return null;
-        }
-        return $response;
     }
 
     /**
@@ -112,21 +104,28 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
         $protocol = $secure ? 'https' : 'http';
         $url = sprintf('%s://%s%s', $protocol, $domain, $uri);
 
-        $response = $this->getUrl($url);
-        if ($response === null) {
-            Log::debug(sprintf('Scan %s%s: error', $domain, $uri));
-            return 0;
+        try {
+            $response = $this->client->get($url);
+
+            if (in_array($response->getStatusCode(), [301, 302]) && $recurse) {
+                return $this->scanFile($domain, $uri, true, false);
+            }
+
+            $responseSize = $response->getBody()->getSize();
+
+            Log::debug(sprintf('Scan %s%s: HTTP %d (%d bytes)', $domain, $uri, $responseSize, $response->getStatusCode()));
+
+            return $response->getStatusCode() === 200 ? $responseSize : 0;
+        } catch (RequestException $e){
+            if ($e->hasResponse()){
+                Log::debug(sprintf('Scan %s%s: HTTP %d', $domain, $uri, $e->getResponse()->getStatusCode()));
+            } else {
+                Log::debug(sprintf('Scan %s%s: %s', $domain, $uri, get_class($e)));
+            }
+        }catch (\Exception $e) {
+            Log::alert(sprintf('Scan %s%s: error. %s', $domain, $uri, $e->getMessage()));
         }
-
-        if (in_array($response->getStatusCode(), [301, 302]) && $recurse) {
-            return $this->scanFile($domain, $uri, true, false);
-        }
-
-        $responseSize = $response->getBody()->getSize();
-
-        Log::debug(sprintf('Scan %s%s: HTTP %d (%d bytes)', $domain, $uri, $responseSize, $response->getStatusCode()));
-
-        return $response->getStatusCode() === 200 ? $responseSize : 0;
+        return 0;
     }
 
 
@@ -153,6 +152,7 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
     public function scan(Domain $domain): array
     {
+        $this->client = app()->get(ClientInterface::class);
 
         if (!$this->canConnect($domain->domain)) {
             return ['error' => 'Unable to connect'];
@@ -161,6 +161,8 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
         if (count($this->filesList)) {
             event(new WordlistFilesFound($domain, $this->filesList));
+        } else {
+            Log::info(sprintf('Did not find any wordlist matches from %s', $domain->domain));
         }
 
         return $this->filesList;
@@ -171,8 +173,7 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
     {
         try {
             /** @var Client $client */
-            $client = app()->get(ClientInterface::class);
-            $response = $client->head('http://' . $domain);
+            $response = $this->client->head('http://' . $domain);
             return (bool)$response->getStatusCode();
         } catch (\Exception $e) {
             Log::warning(sprintf('Skipping wordlist scan of %s: unable to connect', $domain));

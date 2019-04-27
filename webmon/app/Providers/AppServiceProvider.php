@@ -32,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(ClientInterface::class, function ($app) {
             return new Client([
-                'timeout' => 3,
+                'timeout' => 4,
                 'headers' => [
                     'User-Agent' => \Campo\UserAgent::random(),
                 ],
