@@ -70,7 +70,8 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
             'scan_type' => self::class
         ]);
 
-        Log::info(sprintf('Starting wordlist scan of domain %s',$this->domain->domain));
+        $start = time();
+        Log::info(sprintf('Starting wordlist scan of domain %s', $this->domain->domain));
 
         $result = $this->scan($this->domain);
 
@@ -80,6 +81,12 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
         $scan->domain->updated_at = Carbon::now();
         $scan->domain->save();
+
+        Log::info(sprintf('Finished wordlist scan of domain %s, took %d seconds',
+            $this->domain->domain,
+            time() - $start
+        ));
+
     }
 
     public static function getScanFrequency(): int
@@ -127,7 +134,7 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
         foreach ($this->getWordList() as $uri) {
 
             // Sleep a bit to not DOS the service between each request
-            usleep(config('webmon.scanners.wordlist.request_delay')*1000);
+            usleep(config('webmon.scanners.wordlist.request_delay') * 1000);
 
             $fileSize = $this->scanFile($domain->domain, $uri);
 
