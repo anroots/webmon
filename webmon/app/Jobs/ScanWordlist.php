@@ -114,6 +114,7 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
         $response = $this->getUrl($url);
         if ($response === null) {
+            Log::debug(sprintf('Scan %s%s: error', $domain, $uri));
             return 0;
         }
 
@@ -121,7 +122,11 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
             return $this->scanFile($domain, $uri, true, false);
         }
 
-        return $response->getStatusCode() === 200 ? $response->getBody()->getSize() : 0;
+        $responseSize = $response->getBody()->getSize();
+
+        Log::debug(sprintf('Scan %s%s: HTTP %d (%d bytes)', $domain, $uri, $responseSize, $response->getStatusCode()));
+
+        return $response->getStatusCode() === 200 ? $responseSize : 0;
     }
 
 
@@ -137,8 +142,6 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
             usleep(config('webmon.scanners.wordlist.request_delay') * 1000);
 
             $fileSize = $this->scanFile($domain->domain, $uri);
-
-            Log::debug(sprintf('Scanned %s%s: %d bytes', $domain->domain, $uri, $fileSize));
 
             if ($fileSize === 0) {
                 continue;

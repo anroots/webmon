@@ -17,7 +17,7 @@ return [
 
             // Delay in milliseconds between each request
             // In order to not DOS the service
-            'request_delay' => 200,
+            'request_delay' => 100,
             'wordlist' => [
                 '/.bash_history',
                 '/.config',
