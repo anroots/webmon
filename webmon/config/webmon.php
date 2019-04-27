@@ -18,6 +18,7 @@ return [
             // Delay in milliseconds between each request
             // In order to not DOS the service
             'request_delay' => 10,
+            'abort_after_fails'=> 10,
             'wordlist' => [
                 '/.travis.yml',
                 '/.travis.yaml',

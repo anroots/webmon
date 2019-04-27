@@ -35,6 +35,8 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
      */
     private $client;
 
+    private $failureCounter = 0;
+
     /**
      * Create a new job instance.
      *
@@ -121,9 +123,11 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
                 Log::debug(sprintf('Scan %s%s: HTTP %d', $domain, $uri, $e->getResponse()->getStatusCode()));
             } else {
                 Log::debug(sprintf('Scan %s%s: %s', $domain, $uri, get_class($e)));
+                $this->failureCounter++;
             }
         }catch (\Exception $e) {
             Log::alert(sprintf('Scan %s%s: error. %s', $domain, $uri, $e->getMessage()));
+            $this->failureCounter++;
         }
         return 0;
     }
@@ -136,6 +140,11 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
     protected function runChecks(Domain $domain): void
     {
         foreach ($this->getWordList() as $uri) {
+
+            // Aborf if too many fails
+            if ($this->failureCounter >= config('webmon.scanners.wordlist.abort_after_failures')) {
+                return;
+            }
 
             // Sleep a bit to not DOS the service between each request
             usleep(config('webmon.scanners.wordlist.request_delay') * 1000);
