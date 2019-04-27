@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Orm\Domain;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 abstract class ImportDomains extends Command
 {
@@ -26,6 +27,7 @@ abstract class ImportDomains extends Command
         $d->save();
         $d->attachTags($tags);
         $this->output->writeln(sprintf('Inserted domain %s', $domain));
+        Log::info(sprintf('Imported domain %s using %s', $domain,self::class));
         return $d;
     }
 

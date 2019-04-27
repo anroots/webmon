@@ -265,7 +265,14 @@ return [
                 '/data.sql.gz',
                 '/site.sql.zip',
                 '/web.sql.gz',
-                '/site.sql.tar'
+                '/site.sql.tar',
+                '/.travis.yml',
+                '/.travis.yaml',
+                '/circle.yml',
+                '/circle.yaml',
+                '/build.xml',
+                'README.md',
+                'README.txt'
             ]
         ]
     ],
