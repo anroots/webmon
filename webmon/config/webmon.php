@@ -13,12 +13,21 @@ return [
         ],
         'wordlist' => [
             'class' => \App\Jobs\ScanWordList::class,
-            'min_scan_interval'=> 5000, // ~3 days
+            'min_scan_interval'=> 10080, // 1 week
 
             // Delay in milliseconds between each request
             // In order to not DOS the service
-            'request_delay' => 100,
+            'request_delay' => 10,
             'wordlist' => [
+                '/.travis.yml',
+                '/.travis.yaml',
+                '/circle.yml',
+                '/circle.yaml',
+                '/build.xml',
+                'README.md',
+                '/Dockerfile',
+                '/docker-compose.yml',
+                'README.txt',
                 '/.bash_history',
                 '/.config',
                 '/.config.php.swp',
@@ -34,7 +43,6 @@ return [
                 '/.mysql_history',
                 '/.sh_history',
                 '/.ssh/id_rsa',
-                '/.ssh/know_hosts',
                 '/access.log',
                 '/access_log',
                 '/app/config/database.yml',
@@ -61,7 +69,6 @@ return [
                 '/config.save',
                 '/config.swp',
                 '/config.yml',
-                '/Config/',
                 '/config/',
                 '/config/database.yml',
                 '/configuration.ini',
@@ -110,8 +117,6 @@ return [
                 '/mysql.log',
                 '/mysql.sql',
                 '/nano.save',
-                '/php.ini',
-                '/php.ini~',
                 '/settings.bak',
                 '/settings.ini',
                 '/settings.php.bak',
@@ -133,7 +138,6 @@ return [
                 '/logs/access.log ',
                 '/logs/error.log ',
                 '/env',
-                '/Dockerfile',
                 '/db_backup.sql',
                 '/db_backup.sql.tar',
                 '/db_backup.tar.gz',
@@ -266,13 +270,6 @@ return [
                 '/site.sql.zip',
                 '/web.sql.gz',
                 '/site.sql.tar',
-                '/.travis.yml',
-                '/.travis.yaml',
-                '/circle.yml',
-                '/circle.yaml',
-                '/build.xml',
-                'README.md',
-                'README.txt'
             ]
         ]
     ],
