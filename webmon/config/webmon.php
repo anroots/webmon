@@ -19,7 +19,7 @@ return [
             // In order to not DOS the service
             'request_delay' => 200,
             'wordlist' => [
-                '.bash_history',
+                '/.bash_history',
                 '/.config',
                 '/.config.php.swp',
                 '/.configuration.php.swp',
