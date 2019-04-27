@@ -36,7 +36,8 @@ class AppServiceProvider extends ServiceProvider
                 'headers' => [
                     'User-Agent' => \Campo\UserAgent::random(),
                 ],
-                'allow_redirects' => false
+                'allow_redirects' => false,
+                'proxy' => env('HTTP_PROXY', false)
             ]);
         });
     }

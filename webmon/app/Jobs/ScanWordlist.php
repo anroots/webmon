@@ -82,7 +82,7 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
         $scan->domain->updated_at = Carbon::now();
         $scan->domain->save();
 
-        Log::info(sprintf('Finished wordlist scan of domain %s, took %d seconds',
+        Log::info(sprintf('Finished wordlist scan of domain %s, took %f seconds',
             $this->domain->domain,
             time() - $start
         ));
