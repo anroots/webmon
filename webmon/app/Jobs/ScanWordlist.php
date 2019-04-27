@@ -113,7 +113,7 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
             $responseSize = $response->getBody()->getSize();
 
-            Log::debug(sprintf('Scan %s%s: HTTP %d (%d bytes)', $domain, $uri, $responseSize, $response->getStatusCode()));
+            Log::debug(sprintf('Scan %s%s: HTTP %d (%d bytes)', $domain, $uri, $response->getStatusCode(),$responseSize));
 
             return $response->getStatusCode() === 200 ? $responseSize : 0;
         } catch (RequestException $e){
