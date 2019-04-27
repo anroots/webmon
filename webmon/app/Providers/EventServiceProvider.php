@@ -2,11 +2,13 @@
 
 namespace App\Providers;
 
+use App\Events\WordlistFilesFound;
 use App\Events\PublicGitFolderFound;
 use App\Events\UnresolvableDomain;
 use App\Listeners\DeleteUnresolvableDomain;
 use App\Listeners\LogSentNotification;
 use App\Listeners\NotifyOfPublicGitFolder;
+use App\Listeners\NotifyOfWordlistFiles;
 use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Auth\Events\Registered;
@@ -26,6 +28,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         PublicGitFolderFound::class => [
             NotifyOfPublicGitFolder::class
+        ],
+        WordlistFilesFound::class => [
+            NotifyOfWordlistFiles::class
         ],
         NotificationSent::class => [
             LogSentNotification::class

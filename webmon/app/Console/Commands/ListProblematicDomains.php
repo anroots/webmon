@@ -55,9 +55,9 @@ class ListProblematicDomains extends Command
 
         $rows = [];
         foreach ($domains as $domain) {
-            $rows[] = [$domain->domain, 'Git', $domain->updated_at];
+            $rows[] = [$domain->domain, $domain->scan_type, $domain->updated_at];
         }
-        $this->output->table(['Domain', 'Problem', 'Scanned'], $rows);
+        $this->output->table(['Domain', 'Problem', 'Problem discovered'], $rows);
 
         return 0;
     }

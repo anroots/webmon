@@ -2,10 +2,7 @@
 
 namespace App\Listeners;
 
-use App\Events\PublicGitFolderFound;
 use App\Events\UnresolvableDomain;
-use App\Jobs\ScanPublicGitFolder;
-use App\Notifications\PublicGitFolderNotification;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Queue\InteractsWithQueue;

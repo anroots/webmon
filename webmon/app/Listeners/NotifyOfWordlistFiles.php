@@ -3,8 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\WordlistFilesFound;
-use App\Jobs\ScanPublicGitFolder;
-use App\Notifications\PublicGitFolderNotification;
+use App\Notifications\WordlistFilesFoundNotification;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Queue\InteractsWithQueue;
@@ -13,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use App\Orm\Notification as NotificationModel;
 
-class NotifyOfPublicGitFolder implements ShouldQueue
+class NotifyOfWordlistFiles implements ShouldQueue
 {
     /**
      * Create the event listener.
@@ -34,7 +33,10 @@ class NotifyOfPublicGitFolder implements ShouldQueue
      */
     public function handle(WordlistFilesFound $event)
     {
-        Log::info(sprintf('Found public .git folder on domain %s', $event->domain->domain), $event->scanDetails);
+        Log::info(
+            sprintf('Found wordlist files on domain %s', $event->domain->domain),
+            ['files' => implode('; ', array_keys($event->filesList))]
+        );
 
 
         foreach (User::getAdmins() as $user) {
@@ -42,17 +44,17 @@ class NotifyOfPublicGitFolder implements ShouldQueue
             $lastNotification = NotificationModel::firstOrCreate([
                 'user_id' => $user->id,
                 'domain_id' => $event->domain->id,
-                'scan_type' => ScanPublicGitFolder::class
+                'scan_type' => WordlistFilesFound::class
             ]);
 
             $notificationLimit = Carbon::now()->subMinutes(config('webmon.min_renotify_interval'));
 
             if (!$lastNotification->wasRecentlyCreated && $lastNotification->updated_at->greaterThan($notificationLimit)) {
-                Log::info(sprintf('Will not renotify user % about %s on %s', $user->id, ScanPublicGitFolder::class, $event->domain->domain));
+                Log::info(sprintf('Will not renotify user % about %s on %s', $user->id, WordlistFilesFound::class, $event->domain->domain));
                 continue;
             }
 
-            $notification = new PublicGitFolderNotification($event);
+            $notification = new WordlistFilesFoundNotification($event);
             Notification::send($user, $notification);
             $lastNotification->updated_at = Carbon::now();
             $lastNotification->save();
