@@ -28,9 +28,12 @@ services:
     - mail
     volumes:
     - ./webmon:/var/www/
+    environment:
+      - HTTP_PROXY=socks5://tor:9050
     depends_on:
     - app-db
     - redis
+    - tor
     command: "php /var/www/artisan horizon"
 
   lb:
@@ -80,6 +83,11 @@ services:
     - "8025:8025"
     networks:
     - mail
+
+  tor:
+    image: dperson/torproxy
+    networks:
+    - backend
 
 volumes:
   app-db:

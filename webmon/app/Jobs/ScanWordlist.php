@@ -115,17 +115,17 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
             $responseSize = $response->getBody()->getSize();
 
-            Log::debug(sprintf('Found %s%s: HTTP %d (%d bytes)', $domain, $uri, $response->getStatusCode(),$responseSize));
+            Log::debug(sprintf('Found %s%s: HTTP %d (%d bytes)', $domain, $uri, $response->getStatusCode(), $responseSize));
 
             return $response->getStatusCode() === 200 ? $responseSize : 0;
-        } catch (RequestException $e){
-            if ($e->hasResponse()){
+        } catch (RequestException $e) {
+            if ($e->hasResponse()) {
                 Log::debug(sprintf('Scan %s%s: HTTP %d', $domain, $uri, $e->getResponse()->getStatusCode()));
             } else {
-                Log::debug(sprintf('Scan %s%s: %s', $domain, $uri, get_class($e)));
+                Log::info(sprintf('Scan %s%s: %s', $domain, $uri, get_class($e)));
                 $this->failureCounter++;
             }
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             Log::alert(sprintf('Scan %s%s: error. %s', $domain, $uri, $e->getMessage()));
             $this->failureCounter++;
         }
@@ -142,8 +142,16 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
         foreach ($this->getWordList() as $uri) {
 
             // Abort if too many fails
-            if ($this->failureCounter >= config('webmon.scanners.wordlist.abort_after_fails')) {
-                Log::alert(sprintf('Too many failures scanning %s, skipping',$domain->domain));
+            $allowedFailures = config('webmon.scanners.wordlist.abort_after_fails');
+            if ($this->failureCounter >= $allowedFailures) {
+                Log::alert(
+                    sprintf(
+                        'Too many failures (fails: %d, allowed: %d) scanning %s, skipping',
+                        $this->failureCounter,
+                        $allowedFailures,
+                        $domain->domain
+                    )
+                );
                 return;
             }
 
@@ -158,6 +166,18 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
             $this->filesList[$uri] = $fileSize;
         }
+
+        // Filter out items that have identical response sizes
+        // This is a quick hack to remove pages that show an identical error page
+        // Should refactor this to compare content to be more precise
+        $toRemove = [];
+        foreach ($this->filesList as $uri => $size) {
+            if (in_array($size, $this->filesList)) {
+                $toRemove[] = $uri;
+            }
+        }
+
+        $this->filesList = array_diff_key($this->filesList, $toRemove);
     }
 
     public function scan(Domain $domain): array
