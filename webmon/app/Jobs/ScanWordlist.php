@@ -141,8 +141,9 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
     {
         foreach ($this->getWordList() as $uri) {
 
-            // Aborf if too many fails
+            // Abort if too many fails
             if ($this->failureCounter >= config('webmon.scanners.wordlist.abort_after_failures')) {
+                Log::alert(sprintf('Too many failures scanning %s, skipping',$domain->domain));
                 return;
             }
 
