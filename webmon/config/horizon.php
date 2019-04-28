@@ -118,7 +118,7 @@ return [
                 'connection' => 'redis',
                 'queue' => ['default'],
                 'balance' => 'simple',
-                'processes' => 4,
+                'processes' => 6,
                 'tries' => 2,
                 'timeout' => 600
             ],
