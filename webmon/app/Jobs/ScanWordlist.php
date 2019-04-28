@@ -171,8 +171,9 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
         // This is a quick hack to remove pages that show an identical error page
         // Should refactor this to compare content to be more precise
         $toRemove = [];
+        $counts = array_count_values($this->filesList);
         foreach ($this->filesList as $uri => $size) {
-            if (in_array($size, $this->filesList)) {
+            if ($counts[$size] > 1){
                 $toRemove[] = $uri;
             }
         }
