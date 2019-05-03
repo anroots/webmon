@@ -117,7 +117,7 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
             Log::debug(sprintf('Scan %s%s: HTTP %d (%d bytes)', $domain, $uri, $response->getStatusCode(), $responseSize));
 
-            if (mb_stristr($response->getBody()->getContents(),'404 Not Found')) {
+            if (mb_stristr($response->getBody()->getContents(),'Not Found') || $responseSize < 100) {
                 return 0;
             }
 
@@ -180,7 +180,7 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
         $counts = array_count_values($this->filesList);
         foreach ($this->filesList as $uri => $size) {
             if ($counts[$size] > 1){
-                $toRemove[] = $uri;
+                $toRemove[$uri] = 1;
             }
         }
 

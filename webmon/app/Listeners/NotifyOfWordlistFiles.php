@@ -35,7 +35,7 @@ class NotifyOfWordlistFiles implements ShouldQueue
     {
         Log::info(
             sprintf('Found wordlist files on domain %s', $event->domain->domain),
-            ['files' => implode('; ', array_keys($event->filesList))]
+            ['files' => json_encode($event->filesList)]
         );
 
 
