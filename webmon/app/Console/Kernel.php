@@ -28,7 +28,7 @@ class Kernel extends ConsoleKernel
                   ->everyFiveMinutes();
 
         $schedule->command('health:check')
-                  ->everyFiveMinutes();
+                  ->everyFifteenMinutes();
 
         $schedule->command('horizon:snapshot')
             ->everyFiveMinutes();
