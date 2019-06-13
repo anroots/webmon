@@ -6,6 +6,10 @@ use App\Orm\Domain;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Pdp\Cache;
+use Pdp\CurlHttpClient;
+use Pdp\Manager;
+use Pdp\Rules;
 
 abstract class ImportDomains extends Command
 {
@@ -27,8 +31,18 @@ abstract class ImportDomains extends Command
         $d->save();
         $d->attachTags($tags);
         $this->output->writeln(sprintf('Inserted domain %s', $domain));
-        Log::info(sprintf('Imported domain %s using %s', $domain,self::class));
+        Log::info(sprintf('Imported domain %s using %s', $domain, self::class));
         return $d;
+    }
+
+    /**
+     * @return Rules
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    protected function getDomainParser()
+    {
+        $manager = new Manager(new Cache(), new CurlHttpClient());
+        return $manager->getRules();
     }
 
     /**
@@ -53,6 +67,15 @@ abstract class ImportDomains extends Command
 
             if (!in_array('*', $tlds) && !in_array($this->getTld($domain), $tlds)) {
                 $this->output->writeln(sprintf('Skipping domain %s because TLD is not in %s', $domain, implode(',', $tlds)));
+                continue;
+            }
+
+            // Ignore certain subdomains
+            $domainParser = $this->getDomainParser();
+            $parsedDomain = $domainParser->resolve($domain);
+            $subdomain = $parsedDomain->getSubDomain();
+            if (in_array($subdomain, config('webmon.ignore_subdomains'))) {
+                $this->output->writeln(sprintf('Ignoring domain %s because subdomain %s is marked as ignored', $domain, $subdomain));
                 continue;
             }
 

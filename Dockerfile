@@ -4,9 +4,11 @@ WORKDIR /var/www/
 
 RUN rm -rf /var/www/html /etc/apache2/conf-enabled/security.conf && \
     apt-get update && \
-    apt-get install -y libzip-dev && \
-    docker-php-ext-install pdo_mysql zip pcntl && \
+    apt-get install -y libzip-dev zlib1g-dev libicu-dev g++ && \
+    docker-php-ext-configure intl && \
+    docker-php-ext-install pdo_mysql zip pcntl intl && \
     a2enmod rewrite remoteip headers && \
+    apt-get purge -y g++ && \
     rm -rf /var/lib/apt/lists/*
 
 COPY docker/webserver/000-default.conf /etc/apache2/sites-available/

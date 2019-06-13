@@ -278,6 +278,12 @@ return [
     'min_scan_interval' => env('WEBMON_MIN_INTERVAL', 3),
 
     // Do not re-notify about scanner findings for the domain, if we have already notified about it within this time (in minutes)
-    'min_renotify_interval'=> env('WEBMON_RENOTIFY_INTERVAL', 43800) // 1 month
+    'min_renotify_interval'=> env('WEBMON_RENOTIFY_INTERVAL', 43800), // 1 month
 
+    'ignore_subdomains' => [
+        'cpanel',
+        'webmail',
+        'webdisk',
+        'autodiscover'
+    ]
 ];
