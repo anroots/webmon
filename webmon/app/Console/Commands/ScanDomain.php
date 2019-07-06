@@ -48,6 +48,6 @@ class ScanDomain extends Command
 
         $scanner = new $scannerClass($domain);
 
-        $scanner::dispatch($domain);
+        $scanner->handle();
     }
 }

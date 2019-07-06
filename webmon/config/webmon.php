@@ -129,7 +129,6 @@ return [
                 '/web-console/',
                 '/WEB-INF/config.xml',
                 '/WEB-INF/web.xml',
-                '/web.config',
                 '/wp-config.bak',
                 '/wp-config.php.bak',
                 '/wp-config.php~',
