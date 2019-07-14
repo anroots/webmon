@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Dto\UriScanItem;
+use App\Dto\UriScanResult;
 use App\Events\WordlistFilesFound;
 use App\Orm\Domain;
 use App\Orm\Scan;
@@ -29,6 +31,9 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
      */
     private $domain;
 
+    /**
+     * @var array UriScanResult
+     */
     protected $filesList = [];
     /**
      * @var Client
@@ -100,11 +105,16 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
      * @param bool $recurse
      * @return int
      */
-    protected function scanFile(string $domain, string $uri, bool $secure = false, bool $recurse = true): int
+    protected function scanFile(string $domain, string $uri, bool $secure = false, bool $recurse = true): UriScanResult
     {
 
         $protocol = $secure ? 'https' : 'http';
-        $url = sprintf('%s://%s%s', $protocol, $domain, $uri);
+
+        $result = new UriScanResult;
+        $result->protocol = $protocol;
+        $result->domain = $domain;
+        $result->uri = $uri;
+        $url = $result->getFullURL();
 
         try {
             $response = $this->client->get($url);
@@ -117,11 +127,12 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
             Log::debug(sprintf('Scan %s%s: HTTP %d (%d bytes)', $domain, $uri, $response->getStatusCode(), $responseSize));
 
-            if (mb_stristr($response->getBody()->getContents(),'Not Found') || $responseSize < 100 || mb_stristr($response->getBody()->getContents(),'<script')) {
-                return 0;
+            if (mb_stristr($response->getBody()->getContents(), 'Not Found') || $responseSize < 100 || mb_stristr($response->getBody()->getContents(), '<script')) {
+                return $result;
             }
 
-            return $response->getStatusCode() === 200 ? $responseSize : 0;
+            $result->success = $response->getStatusCode() === 200;
+            return $result;
         } catch (RequestException $e) {
             if ($e->hasResponse()) {
                 Log::debug(sprintf('Scan %s%s: HTTP %d', $domain, $uri, $e->getResponse()->getStatusCode()));
@@ -133,7 +144,7 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
             Log::alert(sprintf('Scan %s%s: error. %s', $domain, $uri, $e->getMessage()));
             $this->failureCounter++;
         }
-        return 0;
+        return $result;
     }
 
 
@@ -143,6 +154,9 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
      */
     protected function runChecks(Domain $domain): void
     {
+
+        $lastBodyText = null;
+
         foreach ($this->getWordList() as $uri) {
 
             // Abort if too many fails
@@ -162,30 +176,33 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
             // Sleep a bit to not DOS the service between each request
             usleep(config('webmon.scanners.wordlist.request_delay') * 1000);
 
-            $fileSize = $this->scanFile($domain->domain, $uri);
+            $scanResult = $this->scanFile($domain->domain, $uri);
 
-            if ($fileSize === 0) {
+            $similarityIndex = 0;
+            similar_text($lastBodyText, $scanResult->response->getBody()->getContents(), $similarityIndex);
+            if ($similarityIndex > 85) {
+                $removedItem = array_pop($this->filesList);
+                Log::debug('Item was too similar to previous scan result; probably false-positive due too a 404 page. Removing both results', [
+                    'similarityIndex' => $similarityIndex,
+                    'previousUri' => $removedItem->uri,
+                    'currentUri' => $uri,
+                    'domain'=>$domain->domain
+                ]);
                 continue;
             }
-            Log::info(sprintf('Found %s%s (%d bytes)', $domain->domain, $uri, $fileSize));
 
-
-            $this->filesList[$uri] = $fileSize;
-        }
-
-        // Filter out items that have identical response sizes
-        // This is a quick hack to remove pages that show an identical error page
-        // Should refactor this to compare content to be more precise
-        $toRemove = [];
-        $counts = array_count_values($this->filesList);
-        foreach ($this->filesList as $uri => $size) {
-            if ($counts[$size] > 1){
-                $toRemove[$uri] = 1;
+            if (!$scanResult->success) {
+                continue;
             }
+            Log::info(sprintf('Found %s%s (%d bytes)', $domain->domain, $uri, $scanResult));
+
+            $lastBodyText=$scanResult->response->getBody()->getContents();
+            $this->filesList[] = $scanResult;
         }
 
-        $this->filesList = array_diff_key($this->filesList, $toRemove);
+
     }
+
 
     public function scan(Domain $domain): array
     {

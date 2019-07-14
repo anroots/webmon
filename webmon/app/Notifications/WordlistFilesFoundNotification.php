@@ -49,13 +49,13 @@ class WordlistFilesFoundNotification extends Notification implements ShouldQueue
 
         $files = '';
 
-        foreach ($this->event->filesList as $fileUrl => $fileSize) {
-            $files .= sprintf("- %s%s (%s bytes)\n", $this->event->domain->domain, $fileUrl, $fileSize);
+        foreach ($this->event->filesList as $scanResult) {
+            $files .= sprintf("- %s://%s%s (%s bytes)\n", $scanResult->protocol, $this->event->domain->domain, $scanResult->uri, $scanResult->fileSize);
         }
 
         return (new MailMessage)
             ->subject(sprintf('Found wordlist files at %s', $this->event->domain->domain))
-            ->line(sprintf('Webmon found some sensitive files at %s.', $this->event->domain->domain))
+            ->line(sprintf('Webmon found wordlist matches at %s.', $this->event->domain->domain))
             ->line($files);
     }
 
