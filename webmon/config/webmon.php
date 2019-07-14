@@ -19,6 +19,10 @@ return [
             // In order to not DOS the service
             'request_delay' => 10,
             'abort_after_fails'=> 10,
+            'ignored_keywords' => [
+                'The Sponsored Listings displayed above are served automatically by a third party.',
+                '404 not found'
+            ],
             'wordlist' => [
                 '/.travis.yml',
                 '/.travis.yaml',

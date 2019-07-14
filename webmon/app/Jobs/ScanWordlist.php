@@ -116,6 +116,8 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
         $result->uri = $uri;
         $url = $result->getFullURL();
 
+        $ignoredKeywords = config('webmon.scanners.wordlist.ignored_keywords');
+
         try {
             $response = $this->client->get($url);
 
@@ -127,7 +129,13 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
             Log::debug(sprintf('Scan %s%s: HTTP %d (%d bytes)', $domain, $uri, $response->getStatusCode(), $responseSize));
 
-            if (mb_stristr($response->getBody()->getContents(), 'Not Found') || $responseSize < 100 || mb_stristr($response->getBody()->getContents(), '<script')) {
+            // If response body contains any of the false-positive keywords, count it as FP
+            foreach ($ignoredKeywords as $keyword){
+                if (mb_stristr($response->getBody()->getContents(), 'Not Found') ){
+                    return $result;
+                }
+            }
+            if ($responseSize < 100) {
                 return $result;
             }
 
@@ -179,7 +187,9 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
             $scanResult = $this->scanFile($domain->domain, $uri);
 
             $similarityIndex = 0;
-            similar_text($lastBodyText, $scanResult->response->getBody()->getContents(), $similarityIndex);
+            if ($lastBodyText !== null) {
+                similar_text($lastBodyText, $scanResult->response->getBody()->getContents(), $similarityIndex);
+            }
             if ($similarityIndex > 85) {
                 $removedItem = array_pop($this->filesList);
                 Log::debug('Item was too similar to previous scan result; probably false-positive due too a 404 page. Removing both results', [
