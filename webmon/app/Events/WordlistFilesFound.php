@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Dto\UriScanResult;
 use App\Orm\Domain;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
@@ -19,7 +20,7 @@ class WordlistFilesFound
      */
     public $domain;
     /**
-     * @var array
+     * @var UriScanResult[]
      */
     public $filesList;
 

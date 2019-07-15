@@ -131,7 +131,7 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
             // If response body contains any of the false-positive keywords, count it as FP
             foreach ($ignoredKeywords as $keyword){
-                if (mb_stristr($response->getBody()->getContents(), 'Not Found') ){
+                if (mb_stristr($response->getBody()->getContents(), $keyword) ){
                     return $result;
                 }
             }
@@ -140,6 +140,7 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
             }
 
             $result->success = $response->getStatusCode() === 200;
+            $result->response = $response;
             return $result;
         } catch (RequestException $e) {
             if ($e->hasResponse()) {
@@ -186,6 +187,10 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
             $scanResult = $this->scanFile($domain->domain, $uri);
 
+            if (!$scanResult->success) {
+                continue;
+            }
+
             $similarityIndex = 0;
             if ($lastBodyText !== null) {
                 similar_text($lastBodyText, $scanResult->response->getBody()->getContents(), $similarityIndex);
@@ -201,10 +206,8 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
                 continue;
             }
 
-            if (!$scanResult->success) {
-                continue;
-            }
-            Log::info(sprintf('Found %s%s (%d bytes)', $domain->domain, $uri, $scanResult));
+
+            Log::info(sprintf('Found %s%s (%d bytes)', $domain->domain, $uri, $scanResult->response->getBody()->getSize()));
 
             $lastBodyText=$scanResult->response->getBody()->getContents();
             $this->filesList[] = $scanResult;

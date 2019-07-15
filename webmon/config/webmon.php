@@ -21,7 +21,10 @@ return [
             'abort_after_fails'=> 10,
             'ignored_keywords' => [
                 'The Sponsored Listings displayed above are served automatically by a third party.',
-                '404 not found'
+                '404 not found',
+                'International Domain Registration',
+                'Directory access is forbidden.',
+                'lehekülge ei leitud'
             ],
             'wordlist' => [
                 '/.travis.yml',

@@ -50,7 +50,13 @@ class WordlistFilesFoundNotification extends Notification implements ShouldQueue
         $files = '';
 
         foreach ($this->event->filesList as $scanResult) {
-            $files .= sprintf("- %s://%s%s (%s bytes)\n", $scanResult->protocol, $this->event->domain->domain, $scanResult->uri, $scanResult->fileSize);
+            $files .= sprintf(
+                "- %s://%s%s (%s bytes)\n",
+                $scanResult->protocol,
+                $this->event->domain->domain,
+                $scanResult->uri,
+                $scanResult->response->getBody()->getSize()
+            );
         }
 
         return (new MailMessage)

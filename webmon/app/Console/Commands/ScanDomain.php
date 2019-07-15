@@ -12,7 +12,7 @@ class ScanDomain extends Command
      *
      * @var string
      */
-    protected $signature = 'scan:domain {--scanner=} {domain}';
+    protected $signature = 'scan:domain {--scanner=wordlist} {domain}';
 
     /**
      * The console command description.
