@@ -24,7 +24,8 @@ return [
                 '404 not found',
                 'International Domain Registration',
                 'Directory access is forbidden.',
-                'lehekülge ei leitud'
+                'lehekülge ei leitud',
+                'parked domain'
             ],
             'wordlist' => [
                 '/.travis.yml',

@@ -126,12 +126,14 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
             }
 
             $responseSize = $response->getBody()->getSize();
+            $body = $response->getBody()->getContents();
+            $response->getBody()->rewind();
 
             Log::debug(sprintf('Scan %s%s: HTTP %d (%d bytes)', $domain, $uri, $response->getStatusCode(), $responseSize));
 
             // If response body contains any of the false-positive keywords, count it as FP
-            foreach ($ignoredKeywords as $keyword){
-                if (mb_stristr($response->getBody()->getContents(), $keyword) ){
+            foreach ($ignoredKeywords as $keyword) {
+                if (mb_stristr($body, $keyword)) {
                     return $result;
                 }
             }
@@ -164,7 +166,7 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
     protected function runChecks(Domain $domain): void
     {
 
-        $lastBodyText = null;
+        $lastBodyText = "";
 
         foreach ($this->getWordList() as $uri) {
 
@@ -186,30 +188,30 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
             usleep(config('webmon.scanners.wordlist.request_delay') * 1000);
 
             $scanResult = $this->scanFile($domain->domain, $uri);
-
             if (!$scanResult->success) {
                 continue;
             }
 
+            $body = $scanResult->response->getBody()->getContents();
+
             $similarityIndex = 0;
-            if ($lastBodyText !== null) {
-                similar_text($lastBodyText, $scanResult->response->getBody()->getContents(), $similarityIndex);
-            }
+            similar_text($lastBodyText, $body, $similarityIndex);
             if ($similarityIndex > 85) {
                 $removedItem = array_pop($this->filesList);
                 Log::debug('Item was too similar to previous scan result; probably false-positive due too a 404 page. Removing both results', [
                     'similarityIndex' => $similarityIndex,
                     'previousUri' => $removedItem->uri,
                     'currentUri' => $uri,
-                    'domain'=>$domain->domain
+                    'domain' => $domain->domain
                 ]);
                 continue;
             }
+            Log::debug('Comparing...',['similarityIndex'=> $similarityIndex,'lastBodyText'=>$lastBodyText]);
 
 
             Log::info(sprintf('Found %s%s (%d bytes)', $domain->domain, $uri, $scanResult->response->getBody()->getSize()));
 
-            $lastBodyText=$scanResult->response->getBody()->getContents();
+            $lastBodyText = $scanResult->response->getBody()->getContents();
             $this->filesList[] = $scanResult;
         }
 
@@ -243,7 +245,7 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
             $response = $this->client->head('http://' . $domain);
             return (bool)$response->getStatusCode();
         } catch (\Exception $e) {
-            Log::warning(sprintf('Skipping wordlist scan of %s: unable to connect', $domain));
+            Log::warning(sprintf('Skipping wordlist scan of %s: unable to connect', $domain), ['e' => $e->getMessage()]);
             return false;
         }
     }

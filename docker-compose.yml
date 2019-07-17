@@ -74,7 +74,7 @@ services:
     - redis:/data
     ports:
     - "6379:6379"
-    command: --appendonly yes --requirepass kthUun9
+    command: --requirepass kthUun9
 
 
   mailserver:
