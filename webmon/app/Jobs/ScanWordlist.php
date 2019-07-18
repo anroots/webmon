@@ -166,7 +166,8 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
     protected function runChecks(Domain $domain): void
     {
 
-        $lastBodyText = "";
+
+        $lastBodyText=null;
 
         foreach ($this->getWordList() as $uri) {
 
@@ -196,11 +197,13 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
             $similarityIndex = 0;
             similar_text($lastBodyText, $body, $similarityIndex);
-            if ($similarityIndex > 85) {
+            $lastBodyText = $body;
+
+            if (strlen($lastBodyText) && $similarityIndex > 85) {
                 $removedItem = array_pop($this->filesList);
                 Log::debug('Item was too similar to previous scan result; probably false-positive due too a 404 page. Removing both results', [
                     'similarityIndex' => $similarityIndex,
-                    'previousUri' => $removedItem->uri,
+                    'previousUri' => $removedItem->uri ?? null,
                     'currentUri' => $uri,
                     'domain' => $domain->domain
                 ]);
@@ -210,8 +213,6 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
 
             Log::info(sprintf('Found %s%s (%d bytes)', $domain->domain, $uri, $scanResult->response->getBody()->getSize()));
-
-            $lastBodyText = $scanResult->response->getBody()->getContents();
             $this->filesList[] = $scanResult;
         }
 
