@@ -119,6 +119,12 @@ class DiscoverSubdomains implements ShouldQueue, WebMonScannerContract
                 continue;
             }
 
+            // Check if we already knew about this subdomain
+            $d = Domain::where('domain', $hostname)->first();
+            if ($d !== null) {
+                continue;
+            }
+
             event(new NewSubdomainFound($domain, $hostname));
             $foundDomains[] = $hostname;
         }
