@@ -87,7 +87,7 @@ class ScanPublicGitFolder implements ShouldQueue, WebMonScannerContract
         $scan->domain->save();
     }
 
-    public static function getScanFrequency(): int
+    public function getScanFrequency(): int
     {
         return config('webmon.scanners.git.min_scan_interval');
     }

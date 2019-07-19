@@ -13,7 +13,7 @@ class ScanMock implements ShouldQueue, WebMonScannerContract
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public static function getScanFrequency(): int
+    public function getScanFrequency(): int
     {
         return 30;
     }

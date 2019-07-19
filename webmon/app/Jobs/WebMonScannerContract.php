@@ -6,7 +6,7 @@ use App\Orm\Domain;
 
 interface WebMonScannerContract
 {
-    public static function getScanFrequency(): int;
+    public function getScanFrequency(): int;
 
     public function scan(Domain $domain): array;
 }

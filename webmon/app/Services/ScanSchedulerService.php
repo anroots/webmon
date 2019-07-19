@@ -79,7 +79,12 @@ class ScanSchedulerService
         if ($lastScan !== null) {
             $diffInMinutes = Carbon::now()->diffInMinutes($lastScan->updated_at, false);
 
-            if ($diffInMinutes < 0) {
+            // Do not scan, if not enough time has passed from the last scan
+            // Based on the webmon.min_scan_interval setting of each specific scanner
+            if ($diffInMinutes + $scanner->getScanFrequency() > 0) {
+                Log::debug(
+                    sprintf('Skipping %s scan for domain %s - not enough time has passed from last scan (%d)', get_class($scanner), $domain->domain, $diffInMinutes)
+                );
                 return false;
             }
         }

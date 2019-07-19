@@ -55,7 +55,7 @@ class CheckDomainResolves implements ShouldQueue, WebMonScannerContract
         $scan->domain->save();
     }
 
-    public static function getScanFrequency(): int
+    public function getScanFrequency(): int
     {
         return config('webmon.scanners.unresolvable.min_scan_interval');
     }

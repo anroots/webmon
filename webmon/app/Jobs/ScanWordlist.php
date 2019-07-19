@@ -88,7 +88,7 @@ class ScanWordList implements ShouldQueue, WebMonScannerContract
 
     }
 
-    public static function getScanFrequency(): int
+    public function getScanFrequency(): int
     {
         return config('webmon.scanners.wordlist.min_scan_interval');
     }
