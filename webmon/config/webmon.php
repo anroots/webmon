@@ -11,6 +11,10 @@ return [
             'class' => \App\Jobs\CheckDomainResolves::class,
             'min_scan_interval' => 10080 // 1 week
         ],
+        'discoversubdomains' => [
+            'class' => \App\Jobs\DiscoverSubdomains::class,
+            'min_scan_interval' => 10080 * 4 // ~ 1 month
+        ],
         'wordlist' => [
             'class' => \App\Jobs\ScanWordList::class,
             'min_scan_interval'=> 10080, // 1 week
