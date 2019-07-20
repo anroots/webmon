@@ -1,9 +1,6 @@
 www
 mail
-webmail
 smtp
-webdisk
-cpanel
 whm
 test
 m
@@ -392,7 +389,6 @@ ticket
 js
 ns9
 outlook
-MAIL
 foto
 pro
 mantis
@@ -940,7 +936,7 @@ hub
 demo3
 minecraft
 ns22
-HW70F395EB456E
+hw70f395eb456e
 dns01
 wpad
 nm
@@ -1038,7 +1034,6 @@ simple
 e-learning
 fire
 cb
-WWW
 edi
 rsc
 yellow
@@ -1503,15 +1498,14 @@ donate
 s9
 ftps
 falcon
-DomainDnsZones
 depot
-NS1
+ns1
 genesis
 mysql4
 rms
 ns30
 wholesale
-ForestDnsZones
+forestdnszones
 marketplace
 tesla
 statistik
@@ -1521,7 +1515,6 @@ brand
 gift
 shell
 apply
-forestdnszones
 nc
 kronos
 epsilon
@@ -1732,7 +1725,7 @@ csg
 mi
 url
 dl2
-NS2
+ns2
 show
 mexico
 knowledge
@@ -3004,7 +2997,6 @@ vivaldi
 graph
 ld
 rec
-CISCO-LWAPP-CONTROLLER
 bach
 melody
 cygnus
@@ -3311,7 +3303,7 @@ server20
 wap2
 s35
 anketa
-anhTH
+anhth
 montana
 sp2
 parents
@@ -4082,7 +4074,6 @@ xz
 utm
 s40
 panorama
-CISCO-CAPWAP-CONTROLLER
 photon
 vas
 war
