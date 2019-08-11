@@ -46,10 +46,18 @@ return [
         ],
 
         'daily' => [
-            'driver' => 'daily',
-            'path' => storage_path('logs/laravel.log'),
-            'level' => env('LOG_LEVEL','info'),
-            'days' => 14,
+            'driver' => 'monolog',
+            'handler' => \Monolog\Handler\RotatingFileHandler::class,
+            'handler_with' => [
+                'filename' => storage_path('logs/laravel.log'),
+                'maxFiles' => 7
+            ],
+            'formatter' => \Monolog\Formatter\LogstashFormatter::class,
+            'formatter_with' => [
+                'applicationName' => env('app_name'),
+                'contextPrefix' => ''
+            ],
+
         ],
 
         'slack' => [
