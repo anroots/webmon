@@ -29,8 +29,11 @@ class ImportCTDomains extends ImportDomains
     protected function readLines(string $file): \Iterator
     {
 
+        $username = $this->input->getOption('username') ?: env('CT_USERNAME');
+        $password = $this->input->getOption('password') ?: env('CT_PASSWORD');
+
         $client = new Client;
-        $response = $client->request('GET', $file, ['auth' => [$this->input->getOption('username'), $this->input->getOption('password')]]);
+        $response = $client->request('GET', $file, ['auth' => [$username, $password]]);
 
         if ($response->getStatusCode() !== 200) {
             throw new \Exception('Unable to open URL');
