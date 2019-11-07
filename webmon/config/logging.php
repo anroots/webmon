@@ -1,5 +1,7 @@
 <?php
 
+use Monolog\Formatter\LogstashFormatter;
+use Monolog\Handler\RotatingFileHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 
@@ -45,19 +47,19 @@ return [
             'level' => env('LOG_LEVEL','info'),
         ],
 
+        // Application log
         'daily' => [
             'driver' => 'monolog',
-            'handler' => \Monolog\Handler\RotatingFileHandler::class,
+            'handler' => RotatingFileHandler::class,
             'handler_with' => [
                 'filename' => storage_path('logs/laravel.log'),
                 'maxFiles' => 7
             ],
-            'formatter' => \Monolog\Formatter\LogstashFormatter::class,
+            'formatter' => LogstashFormatter::class,
             'formatter_with' => [
-                'applicationName' => env('app_name'),
-                'contextPrefix' => ''
+                'applicationName' => 'webmon',
+                'contextPrefix' => '',
             ],
-
         ],
 
         'slack' => [
